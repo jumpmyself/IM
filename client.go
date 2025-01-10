@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net"
+	"os"
 )
 
 type Client struct {
@@ -32,6 +34,14 @@ func NewClient(serverIp string, serverPort int) *Client {
 	return client
 }
 
+// 处理server回应的消息、直接显示到标准输出
+func (client *Client) DealResponse() {
+	// 一旦client.conn有数据、就直接copy到student标准输出上、永久阻塞监听
+	io.Copy(os.Stdout, client.Conn)
+	//
+
+}
+
 // 菜单
 func (client *Client) Menu() bool {
 	var (
@@ -53,6 +63,19 @@ func (client *Client) Menu() bool {
 	}
 }
 
+func (client *Client) UpdateName() bool {
+	fmt.Println(">>>>>>>> 请输入用户名:")
+	fmt.Scanln(&client.Name)
+
+	sendMsg := "rename|" + client.Name + "\n"
+	_, err := client.Conn.Write([]byte(sendMsg))
+	if err != nil {
+		fmt.Println("conn.Write err:", err)
+		return false
+	}
+	return true
+}
+
 // 客户端run方法
 func (client *Client) Run() {
 	for client.flag != 0 {
@@ -70,7 +93,7 @@ func (client *Client) Run() {
 			break
 		case 3:
 			// 更新用户名
-			fmt.Println("更新用户名选择...")
+			client.UpdateName()
 			break
 		}
 	}
@@ -97,6 +120,9 @@ func main() {
 		fmt.Println(">>>>>>>> 连接服务器失败 >>>>>>>")
 		return
 	}
+	// 单独开启一个foroutine处理server的回执消息
+	go client.DealResponse()
+
 	fmt.Println(">>>>>>>>> 连接服务器成功 >>>>>>>>>>")
 
 	// 启动客户端的业务
