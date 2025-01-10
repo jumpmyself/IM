@@ -38,7 +38,7 @@ func (this *User) ListenMessage() {
 	for {
 		msg := <-this.C
 
-		this.conn.Write([]byte(msg + "\n"))
+		_, _ = this.conn.Write([]byte(msg + "\n"))
 	}
 }
 
@@ -66,7 +66,7 @@ func (this *User) Offline() {
 
 // 给当前User对应的客户端发送消息
 func (this *User) SendMsg(msg string) {
-	this.conn.Write([]byte(msg + "\n"))
+	_, _ = this.conn.Write([]byte(msg + "\n"))
 
 }
 
@@ -98,6 +98,28 @@ func (this *User) DoMessage(msg string) {
 			this.Name = newName
 			this.SendMsg("您已更新用户名：" + this.Name + "\n")
 		}
+
+	} else if len(msg) > 4 && msg[:3] == "to|" {
+		// 消息格式：to|张三|消息内容
+		// 1 获取对方用户名
+		remoteName := strings.Split(msg, "|")[1]
+		if remoteName == "" {
+			this.SendMsg("消息格式不正确，请使用\"to|xxx|msg\"格式\n")
+			return
+		}
+		// 2 根据用户名得到对方的User对象
+		remoteUser, ok := this.server.OnlineMap[remoteName]
+		if !ok {
+			this.SendMsg("用户不存在\n")
+			return
+		}
+		// 3 获取消息内容、通过对方的User对象将消息内容人发送过去
+		content := strings.Split(msg, "|")[2]
+		if content == "" {
+			this.SendMsg("输入不能为空\n")
+			return
+		}
+		remoteUser.SendMsg(content + "by" + this.Name + "\n")
 
 	} else {
 		this.server.Broadcast(this, msg)
