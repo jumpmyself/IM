@@ -37,7 +37,7 @@ func NewClient(serverIp string, serverPort int) *Client {
 // 处理server回应的消息、直接显示到标准输出
 func (client *Client) DealResponse() {
 	// 一旦client.conn有数据、就直接copy到student标准输出上、永久阻塞监听
-	io.Copy(os.Stdout, client.Conn)
+	_, _ = io.Copy(os.Stdout, client.Conn)
 	//
 
 }
@@ -52,7 +52,7 @@ func (client *Client) Menu() bool {
 	fmt.Println("3.更新用户名模式")
 	fmt.Println("0.推出")
 
-	fmt.Scanln(&flag)
+	_, _ = fmt.Scanln(&flag)
 
 	if flag >= 0 && flag <= 3 {
 		client.flag = flag
@@ -63,6 +63,7 @@ func (client *Client) Menu() bool {
 	}
 }
 
+// 查询用户并显示
 func (client *Client) SelectUsers() {
 	sendMsg := "who\n"
 	_, err := client.Conn.Write([]byte(sendMsg))
@@ -72,6 +73,7 @@ func (client *Client) SelectUsers() {
 	}
 }
 
+// 私聊模式
 func (client *Client) PrivateChat() {
 	var remoteName string
 	var chatMsg string
@@ -104,6 +106,7 @@ func (client *Client) PrivateChat() {
 
 }
 
+// 公聊模式
 func (client *Client) PublicChat() {
 	// 提示用户输入信息
 	var chatMsg string
@@ -128,9 +131,10 @@ func (client *Client) PublicChat() {
 	}
 }
 
+// 更新用户名
 func (client *Client) UpdateName() bool {
 	fmt.Println(">>>>>>>> 请输入用户名:")
-	fmt.Scanln(&client.Name)
+	_, _ = fmt.Scanln(&client.Name)
 
 	sendMsg := "rename|" + client.Name + "\n"
 	_, err := client.Conn.Write([]byte(sendMsg))
