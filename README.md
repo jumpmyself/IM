@@ -1,1 +1,1 @@
-一个练手的即时通信系统、主要使用goroutine和channel来进行消息的发送与接收
+一个即时通信小demo示例、主要使用goroutine和channel来进行消息的发送与接收
